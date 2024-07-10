@@ -1,4 +1,4 @@
-use std::{collections::HashMap, i64::MAX};
+use std::{collections::BTreeMap, i64::MAX};
 
 pub fn games_above_threshold (threshold: i64, list:Vec<(&i64, &i64)> ) -> i64{
     let mut count = 0;
@@ -29,7 +29,7 @@ pub fn median_calc(num_games: &i64, list: Vec<(&i64, &i64)>) -> i64{
     median
 }
 
-pub fn high_low_total_counts(hash_list:Vec<(i64, i64, i64, HashMap<i64, i64>)>) -> (i64, i64, i64){
+pub fn high_low_total_counts(hash_list:Vec<(i64, i64, i64, BTreeMap<i64, i64>)>) -> (i64, i64, i64){
     let mut high_count = 0;
     let mut low_count = MAX;
     let mut total_count = 0;

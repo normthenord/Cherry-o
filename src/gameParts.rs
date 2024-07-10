@@ -1,9 +1,11 @@
+use std::i64::MAX;
+
 use rand::{
     distributions::{Distribution, Standard},
     Rng,
 };
 
-use std::{collections::HashMap, i64::MAX};
+use crate::BTreeMap;
 
 #[derive(Debug)]
 enum RollOption {
@@ -59,11 +61,11 @@ fn game() -> i64 {
     count
 }
 
-pub fn threaded_games(num: i64) -> (i64, i64, i64, HashMap<i64, i64>) {
+pub fn threaded_games(num: i64) -> (i64, i64, i64, BTreeMap<i64, i64>) {
     let mut high_count = 0;
     let mut low_count = MAX;
     let mut total_count = 0;
-    let mut hash_counts = HashMap::new();
+    let mut hash_counts = BTreeMap::new();
 
     for _ in 1..num {
         let game_count = game();
