@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "Cheerio"
+name = "Cherry-o"
 version = "0.1.0"
 dependencies = [
  "rand",
