@@ -1,4 +1,4 @@
-use std::i64::MAX;
+use std::{i64::MAX, sync::Arc};
 
 use rand::{
     distributions::{Distribution, Standard},
@@ -18,6 +18,44 @@ enum RollOption {
     OopsNoCherries,
 }
 
+pub struct Game {
+    count: i64,
+    cherries: i64,
+}
+
+impl Game {
+    pub fn new() -> Game {
+        Game {
+            count: 0,
+            cherries: 10,
+        }
+    }
+
+    fn game(&mut self) -> i64 {
+        loop {
+            let roll: RollOption = rand::random();
+            self.count = self.count + 1;
+            match roll {
+                RollOption::OneCherry => self.cherries = self.cherries - 1,
+                RollOption::TwoCherry => self.cherries = self.cherries - 2,
+                RollOption::ThreeCherry => self.cherries = self.cherries - 3,
+                RollOption::FourCherry => self.cherries = self.cherries - 4,
+                RollOption::Bird => self.cherries = self.cherries + 2,
+                RollOption::Dog => self.cherries = self.cherries + 2,
+                RollOption::OopsNoCherries => self.cherries = 10,
+            }
+
+            if self.cherries > 10 {
+                self.cherries = 10;
+            }
+            if self.cherries <= 0 {
+                break;
+            }
+        }
+        self.count
+    }
+}
+
 impl Distribution<RollOption> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> RollOption {
         // match rng.gen_range(0, 3) { // rand 0.5, 0.6, 0.7
@@ -34,32 +72,32 @@ impl Distribution<RollOption> for Standard {
     }
 }
 
-fn game() -> i64 {
-    let mut cherries: i64 = 10;
-    let mut count = 0;
-    loop {
-        let roll: RollOption = rand::random();
-        // println!("{:#?}", roll);
-        count = count + 1;
-        match roll {
-            RollOption::OneCherry => cherries = cherries - 1,
-            RollOption::TwoCherry => cherries = cherries - 2,
-            RollOption::ThreeCherry => cherries = cherries - 3,
-            RollOption::FourCherry => cherries = cherries - 4,
-            RollOption::Bird => cherries = cherries + 2,
-            RollOption::Dog => cherries = cherries + 2,
-            RollOption::OopsNoCherries => cherries = 10,
-        }
+// fn game() -> i64 {
+//     let mut cherries: i64 = 10;
+//     let mut count = 0;
+//     loop {
+//         let roll: RollOption = rand::random();
+//         // println!("{:#?}", roll);
+//         count = count + 1;
+//         match roll {
+//             RollOption::OneCherry => cherries = cherries - 1,
+//             RollOption::TwoCherry => cherries = cherries - 2,
+//             RollOption::ThreeCherry => cherries = cherries - 3,
+//             RollOption::FourCherry => cherries = cherries - 4,
+//             RollOption::Bird => cherries = cherries + 2,
+//             RollOption::Dog => cherries = cherries + 2,
+//             RollOption::OopsNoCherries => cherries = 10,
+//         }
 
-        if cherries > 10 {
-            cherries = 10;
-        }
-        if cherries <= 0 {
-            break;
-        }
-    }
-    count
-}
+//         if cherries > 10 {
+//             cherries = 10;
+//         }
+//         if cherries <= 0 {
+//             break;
+//         }
+//     }
+//     count
+// }
 
 pub fn threaded_games(num: i64) -> (i64, i64, i64, BTreeMap<i64, i64>) {
     let mut high_count = 0;
@@ -68,7 +106,9 @@ pub fn threaded_games(num: i64) -> (i64, i64, i64, BTreeMap<i64, i64>) {
     let mut hash_counts = BTreeMap::new();
 
     for _ in 1..num {
-        let game_count = game();
+        // let game_count = game();
+        let mut game = Game::new();
+        let game_count = game.game();
         if hash_counts.contains_key(&game_count) {
             hash_counts.insert(game_count, hash_counts.get(&game_count).unwrap() + 1);
         } else {

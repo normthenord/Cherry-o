@@ -7,14 +7,20 @@ use std::time::Instant;
 
 use std::thread;
 
-use gameParts::threaded_games;
+use gameParts::{threaded_games, Game};
 
 use utility::{high_low_total_counts, median_calc, print_threshold};
+
+
+const GAME_NUM: i64 = 100_000_00;
+
+
+
 
 fn main() {
     let num_cores = thread::available_parallelism().unwrap().get() as i64;
     let now = Instant::now();
-    let num_games = 10_000_000;
+    let num_games = GAME_NUM;
     let num_games_per_thread = num_games / num_cores;
     let extra_games = num_games % num_cores;
 
