@@ -11,7 +11,7 @@ use gameParts::threaded_games;
 
 use utility::{high_low_total_counts, median_calc, print_threshold};
 
-const GAME_NUM: i64 = 100_000_000;
+const GAME_NUM: i64 = 123_456_789;
 
 fn main() {
     let num_cores = thread::available_parallelism().unwrap().get() as i64;
@@ -44,7 +44,7 @@ fn main() {
     let mut big_hash_counts = BTreeMap::new();
     for count in &counts {
         for (key, value) in count.3.clone().into_iter() {
-            *big_hash_counts.entry(key).or_insert(value) += value;
+            *big_hash_counts.entry(key).or_insert(0) += value;
         }
     }
     let mut big_hash_vec: Vec<(&i64, &i64)> = big_hash_counts.iter().collect();
@@ -56,8 +56,11 @@ fn main() {
 
     let median = median_calc(&num_games, big_hash_vec.clone());
 
+    let games_played:i64 = big_hash_counts.values().sum();
+    assert_eq!(num_games, games_played);
     println!(
-        "Max Rolls: {}\nFewest Rolls: {}\nAvg Rolls: {:.1}\nMedian: {}\nMost Common Result: {}: {} ({:.2}% of the time)\n",
+        "Total Games Played: {}\nMax Rolls: {}\nFewest Rolls: {}\nAvg Rolls: {:.1}\nMedian: {}\nMost Common Result: {}: {} ({:.2}% of the time)\n",
+        games_played,
         high_count,
         low_count,
         total_count as f64 / num_games as f64,

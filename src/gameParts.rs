@@ -76,7 +76,7 @@ pub fn threaded_games(num: i64) -> (i64, i64, i64, BTreeMap<i64, i64>) {
     let mut total_count = 0;
     let mut hash_counts = BTreeMap::new();
 
-    for _ in 1..num {
+    for _ in 0..num {
         let mut game = Game::new();
         let game_count = game.game();
         if hash_counts.contains_key(&game_count) {
