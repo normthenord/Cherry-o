@@ -7,15 +7,11 @@ use std::time::Instant;
 
 use std::thread;
 
-use gameParts::{threaded_games, Game};
+use gameParts::threaded_games;
 
 use utility::{high_low_total_counts, median_calc, print_threshold};
 
-
 const GAME_NUM: i64 = 100_000_000;
-
-
-
 
 fn main() {
     let num_cores = thread::available_parallelism().unwrap().get() as i64;
@@ -61,7 +57,7 @@ fn main() {
     let median = median_calc(&num_games, big_hash_vec.clone());
 
     println!(
-        "Max Rolls: {}\nFewest Rolls: {}\nAvg Rolls: {}\nMedian: {}\nMost Common Result: {}: {} ({}% of the time)\n",
+        "Max Rolls: {}\nFewest Rolls: {}\nAvg Rolls: {:.1}\nMedian: {}\nMost Common Result: {}: {} ({:.2}% of the time)\n",
         high_count,
         low_count,
         total_count as f64 / num_games as f64,
