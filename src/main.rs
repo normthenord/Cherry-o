@@ -2,7 +2,7 @@
 mod gameParts;
 mod utility;
 
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::time::Instant;
 
 use std::thread;
@@ -11,7 +11,7 @@ use gameParts::threaded_games;
 
 use utility::{high_low_total_counts, median_calc, print_threshold};
 
-const GAME_NUM: i64 = 123_456_789;
+const GAME_NUM: i64 = 1_000_000;
 
 fn main() {
     let num_cores = thread::available_parallelism().unwrap().get() as i64;
@@ -41,7 +41,7 @@ fn main() {
     //get high/low/total count
     let (high_count, low_count, total_count) = high_low_total_counts(counts.clone());
 
-    let mut big_hash_counts = BTreeMap::new();
+    let mut big_hash_counts = HashMap::new();
     for count in &counts {
         for (key, value) in count.3.clone().into_iter() {
             *big_hash_counts.entry(key).or_insert(0) += value;
@@ -56,7 +56,7 @@ fn main() {
 
     let median = median_calc(&num_games, big_hash_vec.clone());
 
-    let games_played:i64 = big_hash_counts.values().sum();
+    let games_played: i64 = big_hash_counts.values().sum();
     assert_eq!(num_games, games_played);
     println!(
         "Total Games Played: {}\nMax Rolls: {}\nFewest Rolls: {}\nAvg Rolls: {:.1}\nMedian: {}\nMost Common Result: {}: {} ({:.2}% of the time)\n",
