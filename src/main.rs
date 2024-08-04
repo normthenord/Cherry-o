@@ -12,7 +12,7 @@ use gameParts::{threaded_games, Game};
 use utility::{high_low_total_counts, median_calc, print_threshold};
 
 
-const GAME_NUM: i64 = 100_000_00;
+const GAME_NUM: i64 = 100_000_000;
 
 
 

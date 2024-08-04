@@ -24,8 +24,8 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new() -> Game {
-        Game {
+    pub fn new() -> Self {
+        Self {
             count: 0,
             cherries: 10,
         }
@@ -33,9 +33,8 @@ impl Game {
 
     fn game(&mut self) -> i64 {
         loop {
-            let roll: RollOption = rand::random();
             self.count = self.count + 1;
-            match roll {
+            match rand::random::<RollOption>() {
                 RollOption::OneCherry => self.cherries = self.cherries - 1,
                 RollOption::TwoCherry => self.cherries = self.cherries - 2,
                 RollOption::ThreeCherry => self.cherries = self.cherries - 3,
