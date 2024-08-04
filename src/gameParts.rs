@@ -5,7 +5,6 @@ use rand::{
     Rng,
 };
 
-
 #[derive(Debug)]
 enum RollOption {
     OneCherry,
@@ -64,7 +63,7 @@ impl Distribution<RollOption> for Standard {
             4 => RollOption::FourCherry,
             5 => RollOption::Bird,
             6 => RollOption::Dog,
-            _ => unreachable!("Shouldn't ever roll anything else")
+            _ => unreachable!("Shouldn't ever roll anything else"),
         }
     }
 }
@@ -78,11 +77,7 @@ pub fn threaded_games(num: i64) -> (i64, i64, i64, HashMap<i64, i64>) {
     for _ in 0..num {
         let mut game = Game::new();
         let game_count = game.game();
-        if hash_counts.contains_key(&game_count) {
-            hash_counts.insert(game_count, hash_counts.get(&game_count).unwrap() + 1);
-        } else {
-            hash_counts.insert(game_count, 1 as i64);
-        }
+        *hash_counts.entry(game_count).or_insert(0) += 1;
         total_count = total_count + game_count;
         if game_count > high_count {
             high_count = game_count;
@@ -91,6 +86,6 @@ pub fn threaded_games(num: i64) -> (i64, i64, i64, HashMap<i64, i64>) {
             low_count = game_count;
         }
     }
-    // println!("{:?}", hash_counts);
+
     (high_count, low_count, total_count, hash_counts)
 }

@@ -9,9 +9,9 @@ use std::thread;
 
 use gameParts::threaded_games;
 
-use utility::{high_low_total_counts, median_calc, print_threshold};
+use utility::{calculate_statistics, high_low_total_counts, print_threshold};
 
-const GAME_NUM: i64 = 1_000_000;
+const GAME_NUM: i64 = 1000000;
 
 fn main() {
     let num_cores = thread::available_parallelism().unwrap().get() as i64;
@@ -47,31 +47,28 @@ fn main() {
             *big_hash_counts.entry(key).or_insert(0) += value;
         }
     }
-    let mut big_hash_vec: Vec<(&i64, &i64)> = big_hash_counts.iter().collect();
-
-    let mut mode_vec = big_hash_vec.clone();
-    mode_vec.sort_by(|a, b| b.1.cmp(a.1));
-    let mode = mode_vec[0];
-    big_hash_vec.sort_by_key(|k| *k);
-
-    let median = median_calc(&num_games, big_hash_vec.clone());
+    let big_hash_vec: Vec<(&i64, &i64)> = big_hash_counts.iter().collect();
 
     let games_played: i64 = big_hash_counts.values().sum();
+    let (mean, median, mode) =
+        calculate_statistics(big_hash_vec.clone(), &games_played, &total_count);
+
     assert_eq!(num_games, games_played);
     println!(
         "Total Games Played: {}\nMax Rolls: {}\nFewest Rolls: {}\nAvg Rolls: {:.1}\nMedian: {}\nMost Common Result: {}: {} ({:.2}% of the time)\n",
         games_played,
         high_count,
         low_count,
-        total_count as f64 / num_games as f64,
+        mean,
         median,
         mode.0,
         mode.1,
-        *mode.1 as f64/num_games as f64 * 100.0,);
+        mode.1 as f64/num_games as f64 * 100.0,);
 
     for num_rolls in (10..=100).step_by(10) {
         print_threshold(num_rolls, big_hash_vec.clone(), &num_games);
     }
 
-    println!("This all took {:.2?}", now.elapsed())
+    println!("This all took {:.2?}", now.elapsed());
+    println!("{:?}", big_hash_vec);
 }
