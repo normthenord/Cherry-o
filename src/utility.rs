@@ -19,20 +19,6 @@ pub fn print_threshold(num_rolls: i64, big_hash_vec: Vec<(&i64, &i64)>, num_game
     );
 }
 
-fn median_calc(num_games: &i64, mut list: Vec<(&i64, &i64)>) -> i64 {
-    let mut c = 0;
-    let mut median: i64 = 0;
-    list.sort_by_key(|k| *k);
-    for (k, v) in list.into_iter() {
-        c += v;
-        if c > num_games / 2 {
-            median = *k;
-            break;
-        }
-    }
-    median
-}
-
 pub fn high_low_total_counts(
     hash_list: Vec<(i64, i64, i64, HashMap<i64, i64>)>,
 ) -> (i64, i64, i64) {
@@ -65,4 +51,28 @@ pub fn calculate_statistics(
     let median = median_calc(game_played, big_hash_vec);
 
     (mean, median, (*mode.0, *mode.1))
+}
+
+fn median_calc(num_games: &i64, mut list: Vec<(&i64, &i64)>) -> i64 {
+    let mut c = 0;
+    let mut median: i64 = 0;
+    list.sort_by_key(|k| *k);
+    for (k, v) in list.into_iter() {
+        c += v;
+        if c > num_games / 2 {
+            median = *k;
+            break;
+        }
+    }
+    median
+}
+
+pub fn calcuate_winner(player_vec: &[i64]) -> Option<isize> {
+    let min_value = player_vec.iter().min().unwrap();
+    for (index, score) in player_vec.iter().enumerate() {
+        if score == min_value {
+            return Some(index as isize);
+        }
+    }
+    None
 }

@@ -5,6 +5,8 @@ use rand::{
     Rng,
 };
 
+use crate::GAME_NUM;
+
 #[derive(Debug)]
 enum RollOption {
     OneCherry,
@@ -15,7 +17,7 @@ enum RollOption {
     Dog,
     OopsNoCherries,
 }
-
+#[derive(Debug, Clone, Copy)]
 pub struct Game {
     count: i64,
     cherries: i64,
@@ -88,4 +90,38 @@ pub fn threaded_games(num: i64) -> (i64, i64, i64, HashMap<i64, i64>) {
     }
 
     (high_count, low_count, total_count, hash_counts)
+}
+
+pub fn multiple_players(num_players: usize) {
+    let game_num = GAME_NUM.clamp(0, 1_000_000);
+    let mut winners_counts = HashMap::new();
+    for _ in 0..game_num {
+        let mut player_vec = vec![Game::new(); num_players];
+
+        let player_vec = player_vec
+            .iter_mut()
+            .map(|player| player.game())
+            .collect::<Vec<_>>();
+
+        *winners_counts
+            .entry(crate::utility::calcuate_winner(&player_vec[..]).expect("No winner? Bug!"))
+            .or_insert(0) += 1;
+    }
+
+    let mut winners_counts = winners_counts
+        .iter()
+        .map(|(index, count)| (format!("Player {}", index + 1), count))
+        .collect::<Vec<_>>();
+
+    winners_counts.sort();
+    for (name, count) in winners_counts {
+        println!(
+            "{}: {}  -> Wins {:.2}% of the time",
+            name,
+            count,
+            *count as f64 / game_num as f64 * 100.0
+        );
+    }
+
+    // println!("{:?}", winners_counts);
 }

@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#[allow(dead_code)]
 mod gameParts;
 mod utility;
 
@@ -11,7 +12,7 @@ use gameParts::threaded_games;
 
 use utility::{calculate_statistics, high_low_total_counts, print_threshold};
 
-const GAME_NUM: i64 = 1000000;
+const GAME_NUM: i64 = 1_000_000;
 
 fn main() {
     let num_cores = thread::available_parallelism().unwrap().get() as i64;
@@ -22,8 +23,8 @@ fn main() {
 
     let mut handles = vec![];
 
-    for x in 1..num_cores + 1 {
-        if x == 1 {
+    for x in 0..num_cores {
+        if x == 0 {
             let handle = thread::spawn(move || threaded_games(num_games_per_thread + extra_games));
             handles.push(handle);
         } else {
@@ -69,6 +70,7 @@ fn main() {
         print_threshold(num_rolls, big_hash_vec.clone(), &num_games);
     }
 
-    println!("This all took {:.2?}", now.elapsed());
-    println!("{:?}", big_hash_vec);
+    println!("This all took {:.2?}\n", now.elapsed());
+
+    gameParts::multiple_players(2);
 }
