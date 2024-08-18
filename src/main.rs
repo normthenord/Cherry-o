@@ -13,7 +13,7 @@ use gameParts::threaded_games;
 use utility::{calculate_statistics, high_low_total_counts, print_threshold};
 
 const GAME_NUM: i64 = 1_000_000;
-const PLAYER_COUNT: usize = 8;
+const PLAYER_COUNT: usize = 4;
 
 fn main() {
     let num_cores = thread::available_parallelism().unwrap().get() as i64;
@@ -40,10 +40,8 @@ fn main() {
         counts.push(handle.join().unwrap());
     }
 
-
-
     //get high/low/total count/winning players
-    let (high_count, low_count, total_count, winning_players) = high_low_total_counts(counts.clone());
+    let (high_count, low_count, total_count, winning_players, avg_min) = high_low_total_counts(counts.clone());
 
     let mut big_hash_counts = HashMap::new();
     for count in &counts {
@@ -59,7 +57,7 @@ fn main() {
 
     assert_eq!(num_games * PLAYER_COUNT as i64, games_played);
     println!(
-        "Total Games Played: {}\nNumber of Players {}\nMax Rolls: {}\nFewest Rolls: {}\nAvg Rolls: {:.1}\nMedian: {}\nMost Common Result: {}: {} ({:.2}% of the time)\n",
+        "Total Games Played: {}\nNumber of Players {}\nMax Rolls: {}\nFewest Rolls: {}\nAvg Rolls: {:.1}\nMedian: {}\nMost Common Result: {}: {} ({:.2}% of the time)\nAvg rolls for game to end: {}\n",
         GAME_NUM,
         PLAYER_COUNT,
         high_count,
@@ -68,10 +66,11 @@ fn main() {
         median,
         mode.0,
         mode.1,
-        mode.1 as f64/num_games as f64 * 100.0/PLAYER_COUNT as f64,);
+        mode.1 as f64/num_games as f64 * 100.0/PLAYER_COUNT as f64,
+        avg_min);
 
     for (player_num, count) in winning_players.iter().enumerate(){
-        println!("Player #{}: {} wins: {:.2}% of the time", player_num, count, *count as f64/GAME_NUM as f64 * 100.0)
+        println!("Player #{}: {} wins: {:.2}% of the time", player_num + 1, count, *count as f64/GAME_NUM as f64 * 100.0)
     }
     println!("");
     for num_rolls in (10..=100).step_by(10) {
@@ -79,6 +78,4 @@ fn main() {
     }
 
     println!("This all took {:.2?}\n", now.elapsed());
-
-    // gameParts::multiples();
 }

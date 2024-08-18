@@ -70,12 +70,13 @@ impl Distribution<RollOption> for Standard {
     }
 }
 
-pub fn threaded_games(num: i64) -> (i64, i64, i64, HashMap<i64, i64>, Vec<(isize, i64)>) {
+pub fn threaded_games(num: i64) -> (i64, i64, i64, HashMap<i64, i64>, Vec<(isize, i64)>, Vec<i64>) {
     let mut high_count = 0;
     let mut low_count = MAX;
     let mut total_count = 0;
     let mut hash_counts = HashMap::new();
     let mut winner_counts = HashMap::new();
+    let mut min_rolls_to_win = Vec::new();
 
     for _ in 0..num {
         let mut player_vec = Vec::new();
@@ -94,6 +95,8 @@ pub fn threaded_games(num: i64) -> (i64, i64, i64, HashMap<i64, i64>, Vec<(isize
             }
         }
         let player_vec = player_vec.clone().into_iter().collect::<Vec<i64>>();
+        min_rolls_to_win.push(*player_vec.iter().min().unwrap());
+        
         *winner_counts
             .entry(crate::utility::calcuate_winner(&player_vec[..]).expect("No winner? Bug!"))
             .or_insert(0) += 1;
@@ -107,5 +110,6 @@ pub fn threaded_games(num: i64) -> (i64, i64, i64, HashMap<i64, i64>, Vec<(isize
         total_count,
         hash_counts,
         player_winners,
+        min_rolls_to_win
     )
 }

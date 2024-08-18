@@ -1,6 +1,6 @@
 use std::{collections::HashMap, i64::MAX};
 
-use crate::PLAYER_COUNT;
+use crate::{GAME_NUM, PLAYER_COUNT};
 
 pub fn games_above_threshold(threshold: i64, list: Vec<(&i64, &i64)>) -> i64 {
     let mut count = 0;
@@ -22,12 +22,13 @@ pub fn print_threshold(num_rolls: i64, big_hash_vec: Vec<(&i64, &i64)>, num_game
 }
 
 pub fn high_low_total_counts(
-    hash_list: Vec<(i64, i64, i64, HashMap<i64, i64>, Vec<(isize, i64)>)>,
-) -> (i64, i64, i64, Vec<i64>) {
+    hash_list: Vec<(i64, i64, i64, HashMap<i64, i64>, Vec<(isize, i64)>, Vec<i64>)>,
+) -> (i64, i64, i64, Vec<i64>, f64) {
     let mut high_count = 0;
     let mut low_count = MAX;
     let mut total_count = 0;
     let mut total_winners = vec![0i64;PLAYER_COUNT];
+    let mut avg_min:i64 = 0;
     for count in &hash_list {
         if count.0 > high_count {
             high_count = count.0;
@@ -40,12 +41,18 @@ pub fn high_low_total_counts(
         for (player_num, game) in count.4.iter().enumerate(){
             total_winners[player_num] += game.1;
         }
+        for min in &count.5 {
+            avg_min += min;
+        }
 
+        
 
+        
     }
+    let avg_min = avg_min as f64/GAME_NUM as f64;
 
 
-    (high_count, low_count, total_count, total_winners)
+    (high_count, low_count, total_count, total_winners, avg_min)
 }
 
 pub fn calculate_statistics(
