@@ -12,7 +12,7 @@ use gameParts::threaded_games;
 
 use utility::{calculate_statistics, high_low_total_counts, print_threshold};
 
-const GAME_NUM: i64 = 1_000_000_00;
+const GAME_NUM: i64 = 1_000_000;
 const PLAYER_COUNT: usize = 8;
 
 fn main() {
@@ -68,7 +68,7 @@ fn main() {
         median,
         mode.0,
         mode.1,
-        mode.1 as f64/num_games as f64 * 100.0,);
+        mode.1 as f64/num_games as f64 * 100.0/PLAYER_COUNT as f64,);
 
     for (player_num, count) in winning_players.iter().enumerate(){
         println!("Player #{}: {} wins: {:.2}% of the time", player_num, count, *count as f64/GAME_NUM as f64 * 100.0)

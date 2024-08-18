@@ -17,7 +17,7 @@ pub fn print_threshold(num_rolls: i64, big_hash_vec: Vec<(&i64, &i64)>, num_game
     println!(
         "Games with {num_rolls} rolls or more: {} ({:.2}% of the time)",
         count,
-        count as f64 / (*num_games) as f64 * 100.0
+        count as f64 / (*num_games) as f64 * 100.0/PLAYER_COUNT as f64
     );
 }
 
