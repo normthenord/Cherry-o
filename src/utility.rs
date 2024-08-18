@@ -41,8 +41,6 @@ pub fn high_low_total_counts(
             total_winners[player_num] += game.1;
         }
 
-        // total_winners[0] += count.4[0].1;
-        // total_winners[1] += count.4[1].1;
 
     }
 

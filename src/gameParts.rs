@@ -5,7 +5,7 @@ use rand::{
     Rng,
 };
 
-use crate::{GAME_NUM, PLAYER_COUNT};
+use crate::PLAYER_COUNT;
 
 #[derive(Debug)]
 enum RollOption {
