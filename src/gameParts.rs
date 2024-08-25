@@ -5,7 +5,7 @@ use rand::{
     Rng,
 };
 
-use crate::PLAYER_COUNT;
+// use crate::PLAYER_COUNT;
 
 #[derive(Debug)]
 enum RollOption {
@@ -70,7 +70,7 @@ impl Distribution<RollOption> for Standard {
     }
 }
 
-pub fn threaded_games(num: i64) -> (i64, i64, i64, HashMap<i64, i64>, Vec<(isize, i64)>, Vec<i64>) {
+pub fn threaded_games(num: usize, player_count: usize) -> (i64, i64, i64, HashMap<i64, i64>, Vec<(isize, i64)>, Vec<i64>) {
     let mut high_count = 0;
     let mut low_count = MAX;
     let mut total_count = 0;
@@ -80,7 +80,7 @@ pub fn threaded_games(num: i64) -> (i64, i64, i64, HashMap<i64, i64>, Vec<(isize
 
     for _ in 0..num {
         let mut player_vec = Vec::new();
-        for _ in 0..PLAYER_COUNT {
+        for _ in 0..player_count {
             player_vec.push(Game::new().game());
         }
 

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, i64::MAX, thread};
 
-use crate::{gameParts::threaded_games, GAME_NUM, PLAYER_COUNT};
+use crate::gameParts::threaded_games;
 
 pub fn games_above_threshold(threshold: i64, list: Vec<(&i64, &i64)>) -> i64 {
     let mut count = 0;
@@ -12,12 +12,17 @@ pub fn games_above_threshold(threshold: i64, list: Vec<(&i64, &i64)>) -> i64 {
     count
 }
 
-pub fn print_threshold(num_rolls: i64, big_hash_vec: Vec<(&i64, &i64)>, num_games: &i64) {
+pub fn print_threshold(
+    num_rolls: i64,
+    big_hash_vec: Vec<(&i64, &i64)>,
+    num_games: &usize,
+    player_count: usize,
+) {
     let count = games_above_threshold(num_rolls, big_hash_vec.clone());
     println!(
         "Games with {num_rolls} rolls or more: {} ({:.2}% of the time)",
         count,
-        count as f64 / (*num_games) as f64 * 100.0 / PLAYER_COUNT as f64
+        count as f64 / (*num_games) as f64 * 100.0 / player_count as f64
     );
 }
 
@@ -30,11 +35,13 @@ pub fn high_low_total_counts(
         Vec<(isize, i64)>,
         Vec<i64>,
     )>,
+    player_count: usize,
+    game_num: usize,
 ) -> (i64, i64, i64, Vec<i64>, f64) {
     let mut high_count = 0;
     let mut low_count = MAX;
     let mut total_count = 0;
-    let mut total_winners = vec![0i64; PLAYER_COUNT];
+    let mut total_winners = vec![0i64; player_count];
     let mut avg_min: i64 = 0;
     for count in &hash_list {
         if count.0 > high_count {
@@ -52,7 +59,7 @@ pub fn high_low_total_counts(
             avg_min += min;
         }
     }
-    let avg_min = avg_min as f64 / GAME_NUM as f64;
+    let avg_min = avg_min as f64 / game_num as f64;
 
     (high_count, low_count, total_count, total_winners, avg_min)
 }
@@ -97,7 +104,10 @@ pub fn calcuate_winner(player_vec: &[i64]) -> Option<isize> {
     None
 }
 
-pub fn start_threads() -> Vec<(
+pub fn start_threads(
+    player_count: usize,
+    num_games: &usize,
+) -> Vec<(
     i64,
     i64,
     i64,
@@ -105,8 +115,7 @@ pub fn start_threads() -> Vec<(
     Vec<(isize, i64)>,
     Vec<i64>,
 )> {
-    let num_cores = thread::available_parallelism().unwrap().get() as i64;
-    let num_games = GAME_NUM;
+    let num_cores = thread::available_parallelism().unwrap().get();
     let num_games_per_thread = num_games / num_cores;
     let extra_games = num_games % num_cores;
 
@@ -114,10 +123,13 @@ pub fn start_threads() -> Vec<(
 
     for x in 0..num_cores {
         if x == 0 {
-            let handle = thread::spawn(move || threaded_games(num_games_per_thread + extra_games));
+            let handle = thread::spawn(move || {
+                threaded_games(num_games_per_thread + extra_games, player_count.clone())
+            });
             handles.push(handle);
         } else {
-            let handle = thread::spawn(move || threaded_games(num_games_per_thread));
+            let handle =
+                thread::spawn(move || threaded_games(num_games_per_thread, player_count.clone()));
             handles.push(handle);
         }
     }
