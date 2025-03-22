@@ -1,6 +1,53 @@
-use std::{collections::HashMap, i64::MAX, thread};
-
 use crate::gameParts::threaded_games;
+use crate::gameParts::ThreadedGame;
+use std::{collections::HashMap, fmt::Display, i64::MAX, thread};
+
+pub struct GameStats {
+    pub game_num: usize,
+    pub player_count: usize,
+    pub high_count: i64,
+    pub low_count: i64,
+    pub total_count: i64,
+    pub total_winners: Vec<i64>,
+    pub avg_min: f64,
+    pub mean: f64,
+    pub median: i64,
+    pub mode: (i64, i64),
+}
+
+impl Display for GameStats {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,
+        "Total Games Played: {}\nNumber of Players {}\nMax Rolls: {}\nFewest Rolls: {}\nAvg Rolls: {:.1}\nMedian: {}\nMost Common Result: {}: {} ({:.2}% of the time)\nAvg rolls for game to end: {}\n",
+        self.game_num,
+        self.player_count,
+        self.high_count,
+        self.low_count,
+        self.mean,
+        self.median,
+        self.mode.0,
+        self.mode.1,
+        self.mode.1 as f64/self.game_num as f64 * 100.0,
+        self.avg_min)
+    }
+}
+
+impl Default for GameStats {
+    fn default() -> Self {
+        Self {
+            high_count: Default::default(),
+            low_count: Default::default(),
+            total_count: Default::default(),
+            total_winners: Default::default(),
+            avg_min: Default::default(),
+            mean: Default::default(),
+            median: Default::default(),
+            mode: Default::default(),
+            game_num: Default::default(),
+            player_count: Default::default(),
+        }
+    }
+}
 
 pub fn games_above_threshold(threshold: i64, list: Vec<(&i64, &i64)>) -> i64 {
     let mut count = 0;
@@ -27,57 +74,58 @@ pub fn print_threshold(
 }
 
 pub fn high_low_total_counts(
-    hash_list: Vec<(
-        i64,
-        i64,
-        i64,
-        HashMap<i64, i64>,
-        Vec<(isize, i64)>,
-        Vec<i64>,
-    )>,
+    hash_list: &Vec<ThreadedGame>,
     player_count: usize,
     game_num: usize,
-) -> (i64, i64, i64, Vec<i64>, f64) {
+) -> GameStats {
     let mut high_count = 0;
     let mut low_count = MAX;
     let mut total_count = 0;
     let mut total_winners = vec![0i64; player_count];
     let mut avg_min: i64 = 0;
-    for count in &hash_list {
-        if count.0 > high_count {
-            high_count = count.0;
+    for count in hash_list {
+        if count.high_count > high_count {
+            high_count = count.high_count;
         }
-        if count.1 < low_count {
-            low_count = count.1
+        if count.low_count < low_count {
+            low_count = count.low_count;
         }
-        total_count = total_count + count.2;
-
-        for (player_num, game) in count.4.iter().enumerate() {
+        total_count = total_count + count.total_count;
+        for (player_num, game) in count.player_winners.iter().enumerate() {
             total_winners[player_num] += game.1;
         }
-        for min in &count.5 {
+        for min in &count.min_rolls_to_win {
             avg_min += min;
         }
     }
     let avg_min = avg_min as f64 / game_num as f64;
 
-    (high_count, low_count, total_count, total_winners, avg_min)
+    GameStats {
+        high_count,
+        low_count,
+        total_count,
+        total_winners,
+        avg_min,
+        player_count,
+        game_num,
+        ..Default::default()
+    }
 }
 
 pub fn calculate_statistics(
     big_hash_vec: Vec<(&i64, &i64)>,
     game_played: &i64,
-    total_count: &i64,
-) -> (f64, i64, (i64, i64)) {
+    game_stats: &mut GameStats,
+) {
     let mut mode_vec = big_hash_vec.clone();
     mode_vec.sort_by(|a, b| b.1.cmp(a.1));
     let mode = mode_vec[0];
 
-    let mean = *total_count as f64 / *game_played as f64;
+    game_stats.mode.0 = *mode.0;
+    game_stats.mode.1 = *mode.1;
+    game_stats.mean = game_stats.total_count as f64 / *game_played as f64;
 
-    let median = median_calc(game_played, big_hash_vec);
-
-    (mean, median, (*mode.0, *mode.1))
+    game_stats.median = median_calc(game_played, big_hash_vec);
 }
 
 fn median_calc(num_games: &i64, mut list: Vec<(&i64, &i64)>) -> i64 {
@@ -104,17 +152,7 @@ pub fn calcuate_winner(player_vec: &[i64]) -> Option<isize> {
     None
 }
 
-pub fn start_threads(
-    player_count: usize,
-    num_games: &usize,
-) -> Vec<(
-    i64,
-    i64,
-    i64,
-    HashMap<i64, i64>,
-    Vec<(isize, i64)>,
-    Vec<i64>,
-)> {
+pub fn start_threads(player_count: usize, num_games: &usize) -> Vec<ThreadedGame> {
     let num_cores = thread::available_parallelism().unwrap().get();
     let num_games_per_thread = num_games / num_cores;
     let extra_games = num_games % num_cores;

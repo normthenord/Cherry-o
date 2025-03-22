@@ -5,6 +5,14 @@ use rand::{
     Rng,
 };
 
+pub struct ThreadedGame {
+    pub high_count: i64,
+    pub low_count: i64,
+    pub total_count: i64,
+    pub hash_counts: HashMap<i64, i64>,
+    pub player_winners: Vec<(isize, i64)>,
+    pub min_rolls_to_win: Vec<i64>,
+}
 // use crate::PLAYER_COUNT;
 
 #[derive(Debug)]
@@ -70,7 +78,7 @@ impl Distribution<RollOption> for Standard {
     }
 }
 
-pub fn threaded_games(num: usize, player_count: usize) -> (i64, i64, i64, HashMap<i64, i64>, Vec<(isize, i64)>, Vec<i64>) {
+pub fn threaded_games(num: usize, player_count: usize) -> ThreadedGame {
     let mut high_count = 0;
     let mut low_count = MAX;
     let mut total_count = 0;
@@ -96,7 +104,7 @@ pub fn threaded_games(num: usize, player_count: usize) -> (i64, i64, i64, HashMa
         }
         let player_vec = player_vec.clone().into_iter().collect::<Vec<i64>>();
         min_rolls_to_win.push(*player_vec.iter().min().unwrap());
-        
+
         *winner_counts
             .entry(crate::utility::calcuate_winner(&player_vec[..]).expect("No winner? Bug!"))
             .or_insert(0) += 1;
@@ -104,12 +112,12 @@ pub fn threaded_games(num: usize, player_count: usize) -> (i64, i64, i64, HashMa
     // println!("{:?}", winner_counts);
     let mut player_winners: Vec<(isize, i64)> = winner_counts.into_iter().collect();
     player_winners.sort();
-    (
+    ThreadedGame {
         high_count,
         low_count,
         total_count,
         hash_counts,
         player_winners,
-        min_rolls_to_win
-    )
+        min_rolls_to_win,
+    }
 }
