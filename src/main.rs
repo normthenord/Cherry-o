@@ -41,13 +41,12 @@ fn main() {
 
     // PRINT STATS
     println!("{}", game_stats);
-
     for (player_num, count) in game_stats.total_winners.iter().enumerate() {
         println!(
             "Player #{}: {} wins: {:.2}% of the time",
             player_num + 1,
             count,
-            *count as f64 / GAME_NUM as f64 * 100.0
+            *count as f64 / game_num as f64 * 100.0
         )
     }
     println!("");
@@ -56,7 +55,7 @@ fn main() {
             num_rolls,
             big_hash_vec.clone(),
             &game_num,
-            player_count.clone(),
+            player_count,
         );
     }
 
