@@ -1,6 +1,6 @@
 use crate::gameParts::threaded_games;
 use crate::gameParts::ThreadedGame;
-use std::{collections::HashMap, fmt::Display, i64::MAX, thread};
+use std::{fmt::Display, i64::MAX, thread};
 
 pub struct GameStats {
     pub game_num: usize,
@@ -17,21 +17,22 @@ pub struct GameStats {
 
 impl Display for GameStats {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,
-        "Total Games Played: {}\nNumber of Players {}\nMax Rolls: {}\nFewest Rolls: {}\nAvg Rolls: {:.1}\nMedian: {}\nMost Common Result: {}: {} ({:.2}% of the time)\nAvg rolls for game to end: {}\n",
-        self.game_num,
-        self.player_count,
-        self.high_count,
-        self.low_count,
-        self.mean,
-        self.median,
-        self.mode.0,
-        self.mode.1,
-        self.mode.1 as f64/self.game_num as f64 * 100.0,
-        self.avg_min)
+        write!(f, "Total Games Played: {}\n", self.game_num)?;
+        write!(f, "Number of Players {}\n", self.player_count)?;
+        write!(f, "Max Rolls: {}\n", self.high_count)?;
+        write!(f, "Fewest Rolls: {}\n", self.low_count)?;
+        write!(f, "Avg Rolls: {}\n", self.mean)?;
+        write!(f, "Median: {}\n", self.median)?;
+        write!(
+            f,
+            "Most Common Result: {}: {} ({:.2}% of the time)\n",
+            self.mode.0,
+            self.mode.1,
+            self.mode.1 as f64 / self.game_num as f64 * 100.0
+        )?;
+        write!(f, "Avg rolls for game to end: {}\n", self.avg_min)
     }
 }
-
 impl Default for GameStats {
     fn default() -> Self {
         Self {
@@ -158,7 +159,6 @@ pub fn start_threads(player_count: usize, num_games: &usize) -> Vec<ThreadedGame
     let extra_games = num_games % num_cores;
 
     let mut handles = vec![];
-
     for x in 0..num_cores {
         if x == 0 {
             let handle = thread::spawn(move || {
@@ -174,7 +174,7 @@ pub fn start_threads(player_count: usize, num_games: &usize) -> Vec<ThreadedGame
 
     let mut counts = vec![];
     for handle in handles {
-        counts.push(handle.join().unwrap());
+        counts.push(handle.join().expect("Oops"));
     }
     counts
 }
