@@ -1,4 +1,8 @@
-use std::{collections::HashMap, i64::MAX, sync::{Arc, Mutex}};
+use std::{
+    collections::HashMap,
+    i64::MAX,
+    sync::{Arc, Mutex},
+};
 
 use indicatif::{self, ProgressBar};
 use rand::{
@@ -79,7 +83,11 @@ impl Distribution<RollOption> for Standard {
     }
 }
 
-pub fn threaded_games(num: usize, player_count: usize, pb: &Arc<Mutex<Arc<ProgressBar>>> ) -> ThreadedGame {
+pub fn threaded_games(
+    num: usize,
+    player_count: usize,
+    pb: &Arc<Mutex<Arc<ProgressBar>>>,
+) -> ThreadedGame {
     let mut high_count = 0;
     let mut low_count = MAX;
     let mut total_count = 0;
@@ -89,7 +97,7 @@ pub fn threaded_games(num: usize, player_count: usize, pb: &Arc<Mutex<Arc<Progre
 
     let mut count = 0;
     for _idx in 0..num {
-        count+= 1;
+        count += 1;
         let mut player_vec = Vec::new();
         for _ in 0..player_count {
             player_vec.push(Game::new().game());
@@ -111,11 +119,12 @@ pub fn threaded_games(num: usize, player_count: usize, pb: &Arc<Mutex<Arc<Progre
         *winner_counts
             .entry(crate::utility::calcuate_winner(&player_vec[..]).expect("No winner? Bug!"))
             .or_insert(0) += 1;
-        
-        let pb_guard = pb.try_lock();
-        if pb_guard.is_ok() {
-            pb_guard.unwrap().inc(count);
-            count = 0;
+        if count % 100 == 0 {
+            let pb_guard = pb.try_lock();
+            if pb_guard.is_ok() {
+                pb_guard.unwrap().inc(count);
+                count = 0;
+            }
         }
     }
     // println!("{:?}", winner_counts);
