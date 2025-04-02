@@ -1,5 +1,9 @@
+use indicatif::ProgressBar;
+
 use crate::gameParts::threaded_games;
 use crate::gameParts::ThreadedGame;
+use std::sync::Arc;
+use std::sync::Mutex;
 use std::{fmt::Display, i64::MAX, thread};
 
 pub struct GameStats {
@@ -158,16 +162,25 @@ pub fn start_threads(player_count: usize, num_games: &usize) -> Vec<ThreadedGame
     let num_games_per_thread = num_games / num_cores;
     let extra_games = num_games % num_cores;
 
+    let pb = Arc::new(ProgressBar::new(*num_games as u64));
+    let pb_mutex = Arc::new(Mutex::new(pb));
     let mut handles = vec![];
     for x in 0..num_cores {
+        let threaded_pb = Arc::clone(&pb_mutex);
         if x == 0 {
             let handle = thread::spawn(move || {
-                threaded_games(num_games_per_thread + extra_games, player_count.clone())
+                threaded_games(
+                    num_games_per_thread + extra_games,
+                    player_count.clone(),
+                    &threaded_pb
+                    
+                )
             });
             handles.push(handle);
         } else {
-            let handle =
-                thread::spawn(move || threaded_games(num_games_per_thread, player_count.clone()));
+            let handle = thread::spawn(move || {
+                threaded_games(num_games_per_thread, player_count.clone(), &threaded_pb)
+            });
             handles.push(handle);
         }
     }

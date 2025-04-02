@@ -51,13 +51,8 @@ fn main() {
     }
     println!("");
     for num_rolls in (10..=100).step_by(10) {
-        print_threshold(
-            num_rolls,
-            big_hash_vec.clone(),
-            &game_num,
-            player_count,
-        );
+        print_threshold(num_rolls, big_hash_vec.clone(), &game_num, player_count);
     }
 
-    println!("This all took {:.2?}\n", now.elapsed());
+    println!("This all took {:.2?}", now.elapsed());
 }
