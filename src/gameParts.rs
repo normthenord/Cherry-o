@@ -1,5 +1,10 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    
+    sync::{Arc, Mutex},
+};
 
+use indicatif::{self, ProgressBar};
 use rand::{
     distributions::{Distribution, Standard},
     Rng,
@@ -43,7 +48,7 @@ impl Game {
         loop {
             self.count += 1;
             match rand::random::<RollOption>() {
-                RollOption::OneCherry => self.cherries  -= 1,
+                RollOption::OneCherry => self.cherries -= 1,
                 RollOption::TwoCherry => self.cherries -= 2,
                 RollOption::ThreeCherry => self.cherries -= 3,
                 RollOption::FourCherry => self.cherries -= 4,
@@ -78,7 +83,11 @@ impl Distribution<RollOption> for Standard {
     }
 }
 
-pub fn threaded_games(num: usize, player_count: usize) -> ThreadedGame {
+pub fn threaded_games(
+    num: usize,
+    player_count: usize,
+    pb: &Arc<Mutex<ProgressBar>>,
+) -> ThreadedGame {
     let mut high_count = 0;
     let mut low_count = i64::MAX;
     let mut total_count = 0;
@@ -86,7 +95,9 @@ pub fn threaded_games(num: usize, player_count: usize) -> ThreadedGame {
     let mut winner_counts = HashMap::new();
     let mut min_rolls_to_win = Vec::new();
 
-    for _ in 0..num {
+    let mut count = 0;
+    for _idx in 0..num {
+        count += 1;
         let mut player_vec = Vec::new();
         for _ in 0..player_count {
             player_vec.push(Game::new().game());
@@ -108,10 +119,18 @@ pub fn threaded_games(num: usize, player_count: usize) -> ThreadedGame {
         *winner_counts
             .entry(crate::utility::calcuate_winner(&player_vec[..]).expect("No winner? Bug!"))
             .or_insert(0) += 1;
+        if count % 100 == 0 {
+            let pb_guard = pb.try_lock();
+            if pb_guard.is_ok() {
+                pb_guard.unwrap().inc(count);
+                count = 0;
+            }
+        }
     }
     // println!("{:?}", winner_counts);
     let mut player_winners: Vec<(isize, i64)> = winner_counts.into_iter().collect();
     player_winners.sort();
+    pb.lock().unwrap().inc(count);
     ThreadedGame {
         high_count,
         low_count,

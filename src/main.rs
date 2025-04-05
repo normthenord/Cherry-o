@@ -37,10 +37,15 @@ fn main() {
     let big_hash_vec: Vec<(&i64, &i64)> = big_hash_counts.iter().collect();
 
     let games_played: i64 = big_hash_counts.values().sum();
-    calculate_statistics(big_hash_vec.clone(), &games_played, &mut game_stats);
+    calculate_statistics(
+        big_hash_vec.clone(),
+        &games_played,
+        &mut game_stats,
+        
+    );
 
     // PRINT STATS
-    println!("{}", game_stats);
+    println!("{game_stats}");
     for (player_num, count) in game_stats.total_winners.iter().enumerate() {
         println!(
             "Player #{}: {} wins: {:.2}% of the time\n",
@@ -53,5 +58,5 @@ fn main() {
         print_threshold(num_rolls, big_hash_vec.clone(), &game_num, player_count);
     }
 
-    println!("This all took {:.2?}\n", now.elapsed());
+    println!("This all took {:.2?}", now.elapsed());
 }

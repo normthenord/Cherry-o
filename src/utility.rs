@@ -1,6 +1,10 @@
+use indicatif::ProgressBar;
+
 use crate::gameParts::threaded_games;
 use crate::gameParts::ThreadedGame;
-use std::{fmt::Display,  thread};
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::{fmt::Display, thread};
 
 #[derive(Default)]
 pub struct GameStats {
@@ -26,30 +30,14 @@ impl Display for GameStats {
         writeln!(f, "Median: {}", self.median)?;
         writeln!(
             f,
-            "Most Common Result: {}: {} ({:.2}% of the time)\n",
+            "Most Common Result: {}: {} ({:.2}% of the time)",
             self.mode.0,
             self.mode.1,
-            self.mode.1 as f64 / self.game_num as f64 * 100.0
+            self.mode.1 as f64 / (self.game_num * self.player_count) as f64 * 100.0
         )?;
         writeln!(f, "Avg rolls for game to end: {}", self.avg_min)
     }
 }
-// impl Default for GameStats {
-//     fn default() -> Self {
-//         Self {
-//             high_count: Default::default(),
-//             low_count: Default::default(),
-//             total_count: Default::default(),
-//             total_winners: Default::default(),
-//             avg_min: Default::default(),
-//             mean: Default::default(),
-//             median: Default::default(),
-//             mode: Default::default(),
-//             game_num: Default::default(),
-//             player_count: Default::default(),
-//         }
-//     }
-// }
 
 pub fn games_above_threshold(threshold: i64, list: Vec<(&i64, &i64)>) -> i64 {
     let mut count = 0;
@@ -92,7 +80,8 @@ pub fn high_low_total_counts(
         if count.low_count < low_count {
             low_count = count.low_count;
         }
-        total_count += count.total_count;
+        total_count  += count.total_count;
+        
         for (player_num, game) in count.player_winners.iter().enumerate() {
             total_winners[player_num] += game.1;
         }
@@ -159,15 +148,24 @@ pub fn start_threads(player_count: usize, num_games: &usize) -> Vec<ThreadedGame
     let num_games_per_thread = num_games / num_cores;
     let extra_games = num_games % num_cores;
 
+    let pb = ProgressBar::new(*num_games as u64);
+    let pb_mutex = Arc::new(Mutex::new(pb));
     let mut handles = vec![];
     for x in 0..num_cores {
+        let threaded_pb = Arc::clone(&pb_mutex);
         if x == 0 {
             let handle = thread::spawn(move || {
-                threaded_games(num_games_per_thread + extra_games, player_count)
+                threaded_games(
+                    num_games_per_thread + extra_games,
+                    player_count,
+                    &threaded_pb,
+                )
             });
             handles.push(handle);
         } else {
-            let handle = thread::spawn(move || threaded_games(num_games_per_thread, player_count));
+            let handle = thread::spawn(move || {
+                threaded_games(num_games_per_thread, player_count, &threaded_pb)
+            });
             handles.push(handle);
         }
     }
