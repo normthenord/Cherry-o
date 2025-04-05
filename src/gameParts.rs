@@ -1,4 +1,4 @@
-use std::{collections::HashMap, i64::MAX};
+use std::collections::HashMap;
 
 use rand::{
     distributions::{Distribution, Standard},
@@ -41,14 +41,14 @@ impl Game {
 
     fn game(&mut self) -> i64 {
         loop {
-            self.count = self.count + 1;
+            self.count += 1;
             match rand::random::<RollOption>() {
-                RollOption::OneCherry => self.cherries = self.cherries - 1,
-                RollOption::TwoCherry => self.cherries = self.cherries - 2,
-                RollOption::ThreeCherry => self.cherries = self.cherries - 3,
-                RollOption::FourCherry => self.cherries = self.cherries - 4,
-                RollOption::Bird => self.cherries = self.cherries + 2,
-                RollOption::Dog => self.cherries = self.cherries + 2,
+                RollOption::OneCherry => self.cherries  -= 1,
+                RollOption::TwoCherry => self.cherries -= 2,
+                RollOption::ThreeCherry => self.cherries -= 3,
+                RollOption::FourCherry => self.cherries -= 4,
+                RollOption::Bird => self.cherries += 2,
+                RollOption::Dog => self.cherries += 2,
                 RollOption::OopsNoCherries => self.cherries = 10,
             }
 
@@ -80,7 +80,7 @@ impl Distribution<RollOption> for Standard {
 
 pub fn threaded_games(num: usize, player_count: usize) -> ThreadedGame {
     let mut high_count = 0;
-    let mut low_count = MAX;
+    let mut low_count = i64::MAX;
     let mut total_count = 0;
     let mut hash_counts = HashMap::new();
     let mut winner_counts = HashMap::new();
@@ -94,7 +94,7 @@ pub fn threaded_games(num: usize, player_count: usize) -> ThreadedGame {
 
         for player in player_vec.clone() {
             *hash_counts.entry(player).or_insert(0) += 1;
-            total_count = total_count + player;
+            total_count += player;
             if player > high_count {
                 high_count = player;
             }

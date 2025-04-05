@@ -23,10 +23,10 @@ fn main() {
         None => GAME_NUM,
     };
 
-    let counts = start_threads(player_count.clone(), &game_num);
+    let counts = start_threads(player_count, &game_num);
 
     //get high/low/total count/winning players
-    let mut game_stats = high_low_total_counts(&counts, player_count.clone(), game_num);
+    let mut game_stats = high_low_total_counts(&counts, player_count, game_num);
 
     let mut big_hash_counts = HashMap::new();
     for count in &counts {
@@ -43,20 +43,14 @@ fn main() {
     println!("{}", game_stats);
     for (player_num, count) in game_stats.total_winners.iter().enumerate() {
         println!(
-            "Player #{}: {} wins: {:.2}% of the time",
+            "Player #{}: {} wins: {:.2}% of the time\n",
             player_num + 1,
             count,
             *count as f64 / game_num as f64 * 100.0
         )
     }
-    println!("");
     for num_rolls in (10..=100).step_by(10) {
-        print_threshold(
-            num_rolls,
-            big_hash_vec.clone(),
-            &game_num,
-            player_count,
-        );
+        print_threshold(num_rolls, big_hash_vec.clone(), &game_num, player_count);
     }
 
     println!("This all took {:.2?}\n", now.elapsed());

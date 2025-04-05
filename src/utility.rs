@@ -1,7 +1,8 @@
 use crate::gameParts::threaded_games;
 use crate::gameParts::ThreadedGame;
-use std::{fmt::Display, i64::MAX, thread};
+use std::{fmt::Display,  thread};
 
+#[derive(Default)]
 pub struct GameStats {
     pub game_num: usize,
     pub player_count: usize,
@@ -17,38 +18,38 @@ pub struct GameStats {
 
 impl Display for GameStats {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Total Games Played: {}\n", self.game_num)?;
-        write!(f, "Number of Players {}\n", self.player_count)?;
-        write!(f, "Max Rolls: {}\n", self.high_count)?;
-        write!(f, "Fewest Rolls: {}\n", self.low_count)?;
-        write!(f, "Avg Rolls: {}\n", self.mean)?;
-        write!(f, "Median: {}\n", self.median)?;
-        write!(
+        writeln!(f, "Total Games Played: {}", self.game_num)?;
+        writeln!(f, "Number of Players {}", self.player_count)?;
+        writeln!(f, "Max Rolls: {}", self.high_count)?;
+        writeln!(f, "Fewest Rolls: {}", self.low_count)?;
+        writeln!(f, "Avg Rolls: {}", self.mean)?;
+        writeln!(f, "Median: {}", self.median)?;
+        writeln!(
             f,
             "Most Common Result: {}: {} ({:.2}% of the time)\n",
             self.mode.0,
             self.mode.1,
             self.mode.1 as f64 / self.game_num as f64 * 100.0
         )?;
-        write!(f, "Avg rolls for game to end: {}\n", self.avg_min)
+        writeln!(f, "Avg rolls for game to end: {}", self.avg_min)
     }
 }
-impl Default for GameStats {
-    fn default() -> Self {
-        Self {
-            high_count: Default::default(),
-            low_count: Default::default(),
-            total_count: Default::default(),
-            total_winners: Default::default(),
-            avg_min: Default::default(),
-            mean: Default::default(),
-            median: Default::default(),
-            mode: Default::default(),
-            game_num: Default::default(),
-            player_count: Default::default(),
-        }
-    }
-}
+// impl Default for GameStats {
+//     fn default() -> Self {
+//         Self {
+//             high_count: Default::default(),
+//             low_count: Default::default(),
+//             total_count: Default::default(),
+//             total_winners: Default::default(),
+//             avg_min: Default::default(),
+//             mean: Default::default(),
+//             median: Default::default(),
+//             mode: Default::default(),
+//             game_num: Default::default(),
+//             player_count: Default::default(),
+//         }
+//     }
+// }
 
 pub fn games_above_threshold(threshold: i64, list: Vec<(&i64, &i64)>) -> i64 {
     let mut count = 0;
@@ -80,7 +81,7 @@ pub fn high_low_total_counts(
     game_num: usize,
 ) -> GameStats {
     let mut high_count = 0;
-    let mut low_count = MAX;
+    let mut low_count = i64::MAX;
     let mut total_count = 0;
     let mut total_winners = vec![0i64; player_count];
     let mut avg_min: i64 = 0;
@@ -91,7 +92,7 @@ pub fn high_low_total_counts(
         if count.low_count < low_count {
             low_count = count.low_count;
         }
-        total_count = total_count + count.total_count;
+        total_count += count.total_count;
         for (player_num, game) in count.player_winners.iter().enumerate() {
             total_winners[player_num] += game.1;
         }
@@ -162,12 +163,11 @@ pub fn start_threads(player_count: usize, num_games: &usize) -> Vec<ThreadedGame
     for x in 0..num_cores {
         if x == 0 {
             let handle = thread::spawn(move || {
-                threaded_games(num_games_per_thread + extra_games, player_count.clone())
+                threaded_games(num_games_per_thread + extra_games, player_count)
             });
             handles.push(handle);
         } else {
-            let handle =
-                thread::spawn(move || threaded_games(num_games_per_thread, player_count.clone()));
+            let handle = thread::spawn(move || threaded_games(num_games_per_thread, player_count));
             handles.push(handle);
         }
     }
