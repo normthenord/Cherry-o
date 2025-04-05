@@ -32,7 +32,7 @@ impl Display for GameStats {
             "Most Common Result: {}: {} ({:.2}% of the time)\n",
             self.mode.0,
             self.mode.1,
-            self.mode.1 as f64 / self.game_num as f64 * 100.0
+            self.mode.1 as f64 / (self.game_num * self.player_count) as f64 * 100.0
         )?;
         write!(f, "Avg rolls for game to end: {}\n", self.avg_min)
     }
@@ -121,6 +121,7 @@ pub fn calculate_statistics(
     big_hash_vec: Vec<(&i64, &i64)>,
     game_played: &i64,
     game_stats: &mut GameStats,
+    player_count: usize,
 ) {
     let mut mode_vec = big_hash_vec.clone();
     mode_vec.sort_by(|a, b| b.1.cmp(a.1));
@@ -162,7 +163,7 @@ pub fn start_threads(player_count: usize, num_games: &usize) -> Vec<ThreadedGame
     let num_games_per_thread = num_games / num_cores;
     let extra_games = num_games % num_cores;
 
-    let pb = Arc::new(ProgressBar::new(*num_games as u64));
+    let pb = ProgressBar::new(*num_games as u64);
     let pb_mutex = Arc::new(Mutex::new(pb));
     let mut handles = vec![];
     for x in 0..num_cores {
@@ -172,8 +173,7 @@ pub fn start_threads(player_count: usize, num_games: &usize) -> Vec<ThreadedGame
                 threaded_games(
                     num_games_per_thread + extra_games,
                     player_count.clone(),
-                    &threaded_pb
-                    
+                    &threaded_pb,
                 )
             });
             handles.push(handle);

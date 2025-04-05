@@ -86,7 +86,7 @@ impl Distribution<RollOption> for Standard {
 pub fn threaded_games(
     num: usize,
     player_count: usize,
-    pb: &Arc<Mutex<Arc<ProgressBar>>>,
+    pb: &Arc<Mutex<ProgressBar>>,
 ) -> ThreadedGame {
     let mut high_count = 0;
     let mut low_count = MAX;
