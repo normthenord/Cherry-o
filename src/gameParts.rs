@@ -113,13 +113,12 @@ pub fn threaded_games(
                 low_count = player;
             }
         }
-        let player_vec = player_vec.clone().into_iter().collect::<Vec<i64>>();
         min_rolls_to_win.push(*player_vec.iter().min().unwrap());
 
         *winner_counts
-            .entry(crate::utility::calcuate_winner(&player_vec[..]).expect("No winner? Bug!"))
+            .entry(crate::utility::calculate_winner(&player_vec[..]).expect("No winner? Bug!"))
             .or_insert(0) += 1;
-        if count % 100 == 0 {
+        if count % 1000 == 0 {
             let pb_guard = pb.try_lock();
             if pb_guard.is_ok() {
                 pb_guard.unwrap().inc(count);

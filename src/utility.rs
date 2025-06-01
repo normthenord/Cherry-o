@@ -133,7 +133,7 @@ fn median_calc(num_games: &i64, mut list: Vec<(&i64, &i64)>) -> i64 {
     median
 }
 
-pub fn calcuate_winner(player_vec: &[i64]) -> Option<isize> {
+pub fn calculate_winner(player_vec: &[i64]) -> Option<isize> {
     let min_value = player_vec.iter().min().unwrap();
     for (index, score) in player_vec.iter().enumerate() {
         if score == min_value {
