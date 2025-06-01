@@ -25,17 +25,21 @@ fn main() {
     let now = Instant::now();
     let cli = Cli::parse();
     //get player count from args. Default to const in file if not supplied
-    let player_count = match cli.player_count{
+    let player_count = match cli.player_count {
         Some(count) => count,
         None => PLAYER_COUNT,
     };
 
-    let game_num = match cli.game_num{
+    let game_num = match cli.game_num {
         Some(count) => count,
         None => GAME_NUM,
     };
     use num_format::{Locale, ToFormattedString};
-    println!("Playing {} games with {} players", game_num.to_formatted_string(&Locale::en), player_count.to_formatted_string(&Locale::en));
+    println!(
+        "Playing {} games with {} players",
+        game_num.to_formatted_string(&Locale::en),
+        player_count.to_formatted_string(&Locale::en)
+    );
 
     let counts = start_threads(player_count, &game_num);
 
@@ -51,6 +55,7 @@ fn main() {
     let big_hash_vec: Vec<(&i64, &i64)> = big_hash_counts.iter().collect();
 
     let games_played: i64 = big_hash_counts.values().sum();
+
     calculate_statistics(big_hash_vec.clone(), &games_played, &mut game_stats);
 
     // PRINT STATS

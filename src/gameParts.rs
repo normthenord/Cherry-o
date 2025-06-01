@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    
+    i64,
     sync::{Arc, Mutex},
 };
 
@@ -18,7 +18,19 @@ pub struct ThreadedGame {
     pub player_winners: Vec<(isize, i64)>,
     pub min_rolls_to_win: Vec<i64>,
 }
-// use crate::PLAYER_COUNT;
+
+impl Default for ThreadedGame {
+    fn default() -> Self {
+        Self {
+            high_count: Default::default(),
+            low_count: i64::MAX,
+            total_count: Default::default(),
+            hash_counts: Default::default(),
+            player_winners: Default::default(),
+            min_rolls_to_win: Default::default(),
+        }
+    }
+}
 
 #[derive(Debug)]
 enum RollOption {
@@ -88,12 +100,8 @@ pub fn threaded_games(
     player_count: usize,
     pb: &Arc<Mutex<ProgressBar>>,
 ) -> ThreadedGame {
-    let mut high_count = 0;
-    let mut low_count = i64::MAX;
-    let mut total_count = 0;
-    let mut hash_counts = HashMap::new();
+    let mut threaded_game = ThreadedGame::default();
     let mut winner_counts = HashMap::new();
-    let mut min_rolls_to_win = Vec::new();
 
     let mut count = 0;
     for _idx in 0..num {
@@ -104,16 +112,18 @@ pub fn threaded_games(
         }
 
         for player in player_vec.clone() {
-            *hash_counts.entry(player).or_insert(0) += 1;
-            total_count += player;
-            if player > high_count {
-                high_count = player;
+            *threaded_game.hash_counts.entry(player).or_insert(0) += 1;
+            threaded_game.total_count += player;
+            if player > threaded_game.high_count {
+                threaded_game.high_count = player;
             }
-            if player < low_count {
-                low_count = player;
+            if player < threaded_game.low_count {
+                threaded_game.low_count = player;
             }
         }
-        min_rolls_to_win.push(*player_vec.iter().min().unwrap());
+        threaded_game
+            .min_rolls_to_win
+            .push(*player_vec.iter().min().unwrap());
 
         *winner_counts
             .entry(crate::utility::calculate_winner(&player_vec[..]).expect("No winner? Bug!"))
@@ -127,15 +137,8 @@ pub fn threaded_games(
         }
     }
     // println!("{:?}", winner_counts);
-    let mut player_winners: Vec<(isize, i64)> = winner_counts.into_iter().collect();
-    player_winners.sort();
+    threaded_game.player_winners = winner_counts.into_iter().collect();
+    threaded_game.player_winners.sort();
     pb.lock().unwrap().inc(count);
-    ThreadedGame {
-        high_count,
-        low_count,
-        total_count,
-        hash_counts,
-        player_winners,
-        min_rolls_to_win,
-    }
+    threaded_game
 }

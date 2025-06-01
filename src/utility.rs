@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::{fmt::Display, thread};
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct GameStats {
     pub game_num: usize,
     pub player_count: usize,
@@ -68,39 +68,33 @@ pub fn high_low_total_counts(
     player_count: usize,
     game_num: usize,
 ) -> GameStats {
-    let mut high_count = 0;
-    let mut low_count = i64::MAX;
-    let mut total_count = 0;
-    let mut total_winners = vec![0i64; player_count];
-    let mut avg_min: i64 = 0;
-    for count in hash_list {
-        if count.high_count > high_count {
-            high_count = count.high_count;
-        }
-        if count.low_count < low_count {
-            low_count = count.low_count;
-        }
-        total_count  += count.total_count;
-        
-        for (player_num, game) in count.player_winners.iter().enumerate() {
-            total_winners[player_num] += game.1;
-        }
-        for min in &count.min_rolls_to_win {
-            avg_min += min;
-        }
-    }
-    let avg_min = avg_min as f64 / game_num as f64;
-
-    GameStats {
-        high_count,
-        low_count,
-        total_count,
-        total_winners,
-        avg_min,
+    let mut game_stats = GameStats {
+        low_count: i64::MAX,
+        total_winners: vec![0i64; player_count],
         player_count,
         game_num,
         ..Default::default()
+    };
+
+    for count in hash_list {
+        if count.high_count > game_stats.high_count {
+            game_stats.high_count = count.high_count;
+        }
+        if count.low_count < game_stats.low_count {
+            game_stats.low_count = count.low_count;
+        }
+        game_stats.total_count += count.total_count;
+
+        for (player_num, game) in count.player_winners.iter().enumerate() {
+            game_stats.total_winners[player_num] += game.1;
+        }
+        for min in &count.min_rolls_to_win {
+            game_stats.avg_min += *min as f64;
+        }
     }
+    game_stats.avg_min = game_stats.avg_min as f64 / game_num as f64;
+
+    game_stats
 }
 
 pub fn calculate_statistics(
