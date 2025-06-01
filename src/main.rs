@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 use clap::Parser;
-use utility::{calculate_statistics, high_low_total_counts, print_threshold, start_threads};
+use utility::{calculate_statistics, high_low_total_counts, print_threshold, start_threads, print_title};
 
 const GAME_NUM: usize = 100_000_000;
 const PLAYER_COUNT: usize = 2;
@@ -23,25 +23,18 @@ struct Cli {
 
 fn main() {
     let now = Instant::now();
+    
+    //Get CLI inputs
     let cli = Cli::parse();
-    //get player count from args. Default to const in file if not supplied
-    let player_count = match cli.player_count {
-        Some(count) => count,
-        None => PLAYER_COUNT,
-    };
+    let player_count = cli.player_count.unwrap_or(PLAYER_COUNT);
+    let game_num = cli.game_num.unwrap_or(GAME_NUM);
 
-    let game_num = match cli.game_num {
-        Some(count) => count,
-        None => GAME_NUM,
-    };
-    use num_format::{Locale, ToFormattedString};
-    println!(
-        "Playing {} games with {} players",
-        game_num.to_formatted_string(&Locale::en),
-        player_count.to_formatted_string(&Locale::en)
-    );
+    //Print info about the game
+    print_title(game_num, player_count);
 
-    let counts = start_threads(player_count, &game_num);
+
+    //Run the simulation
+    let counts = start_threads(player_count, game_num);
 
     //get high/low/total count/winning players
     let mut game_stats = high_low_total_counts(&counts, player_count, game_num);
@@ -52,11 +45,11 @@ fn main() {
             *big_hash_counts.entry(*key).or_insert(0) += value;
         }
     }
-    let big_hash_vec: Vec<(&i64, &i64)> = big_hash_counts.iter().collect();
-
     let games_played: i64 = big_hash_counts.values().sum();
+    let big_hash_vec: Vec<(i64, i64)> = big_hash_counts.into_iter().collect();
 
-    calculate_statistics(big_hash_vec.clone(), &games_played, &mut game_stats);
+
+    calculate_statistics(big_hash_vec.clone(), games_played, &mut game_stats);
 
     // PRINT STATS
     println!("{game_stats}");

@@ -7,7 +7,7 @@ use std::{
 use indicatif::{self, ProgressBar};
 use rand::{
     distributions::{Distribution, Standard},
-    Rng,
+    thread_rng, Rng,
 };
 
 pub struct ThreadedGame {
@@ -57,9 +57,10 @@ impl Game {
     }
 
     fn game(&mut self) -> i64 {
+        let mut rng = thread_rng();
         loop {
             self.count += 1;
-            match rand::random::<RollOption>() {
+            match rng.gen::<RollOption>() {
                 RollOption::OneCherry => self.cherries -= 1,
                 RollOption::TwoCherry => self.cherries -= 2,
                 RollOption::ThreeCherry => self.cherries -= 3,
@@ -102,36 +103,36 @@ pub fn threaded_games(
 ) -> ThreadedGame {
     let mut threaded_game = ThreadedGame::default();
     let mut winner_counts = HashMap::new();
+    threaded_game.min_rolls_to_win = Vec::with_capacity(num);
 
     let mut count = 0;
     for _idx in 0..num {
-        count += 1;
         let mut player_vec = Vec::new();
         for _ in 0..player_count {
             player_vec.push(Game::new().game());
         }
 
-        for player in player_vec.clone() {
+        for &player in &player_vec {
             *threaded_game.hash_counts.entry(player).or_insert(0) += 1;
             threaded_game.total_count += player;
-            if player > threaded_game.high_count {
-                threaded_game.high_count = player;
-            }
-            if player < threaded_game.low_count {
-                threaded_game.low_count = player;
-            }
+
+            threaded_game.high_count = threaded_game.high_count.max(player);
+
+            threaded_game.low_count = threaded_game.low_count.min(player);
         }
-        threaded_game
-            .min_rolls_to_win
-            .push(*player_vec.iter().min().unwrap());
+
+        if let Some(min) = player_vec.iter().min() {
+            threaded_game.min_rolls_to_win.push(*min);
+        }
 
         *winner_counts
             .entry(crate::utility::calculate_winner(&player_vec[..]).expect("No winner? Bug!"))
             .or_insert(0) += 1;
+
+        count += 1;
         if count % 1000 == 0 {
-            let pb_guard = pb.try_lock();
-            if pb_guard.is_ok() {
-                pb_guard.unwrap().inc(count);
+            if let Ok(pb) = pb.try_lock() {
+                pb.inc(count);
                 count = 0;
             }
         }

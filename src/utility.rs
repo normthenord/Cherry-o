@@ -2,6 +2,7 @@ use indicatif::ProgressBar;
 
 use crate::gameParts::threaded_games;
 use crate::gameParts::ThreadedGame;
+use num_format::{Locale, ToFormattedString};
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::{fmt::Display, thread};
@@ -39,10 +40,10 @@ impl Display for GameStats {
     }
 }
 
-pub fn games_above_threshold(threshold: i64, list: Vec<(&i64, &i64)>) -> i64 {
+pub fn games_above_threshold(threshold: i64, list: Vec<(i64, i64)>) -> i64 {
     let mut count = 0;
     for (key, value) in list.into_iter() {
-        if *key >= threshold {
+        if key >= threshold {
             count += value;
         }
     }
@@ -51,7 +52,7 @@ pub fn games_above_threshold(threshold: i64, list: Vec<(&i64, &i64)>) -> i64 {
 
 pub fn print_threshold(
     num_rolls: i64,
-    big_hash_vec: Vec<(&i64, &i64)>,
+    big_hash_vec: Vec<(i64, i64)>,
     num_games: &usize,
     player_count: usize,
 ) {
@@ -98,29 +99,30 @@ pub fn high_low_total_counts(
 }
 
 pub fn calculate_statistics(
-    big_hash_vec: Vec<(&i64, &i64)>,
-    game_played: &i64,
+    big_hash_vec: Vec<(i64, i64)>,
+    game_played: i64,
     game_stats: &mut GameStats,
 ) {
-    let mut mode_vec = big_hash_vec.clone();
-    mode_vec.sort_by(|a, b| b.1.cmp(a.1));
-    let mode = mode_vec[0];
+    let mode = big_hash_vec
+        .iter()
+        .max_by_key(|&(_, count)| *count)
+        .expect("Empty");
 
-    game_stats.mode.0 = *mode.0;
-    game_stats.mode.1 = *mode.1;
-    game_stats.mean = game_stats.total_count as f64 / *game_played as f64;
+    game_stats.mode.0 = mode.0;
+    game_stats.mode.1 = mode.1;
+    game_stats.mean = game_stats.total_count as f64 / game_played as f64;
 
     game_stats.median = median_calc(game_played, big_hash_vec);
 }
 
-fn median_calc(num_games: &i64, mut list: Vec<(&i64, &i64)>) -> i64 {
+fn median_calc(num_games: i64, mut list: Vec<(i64, i64)>) -> i64 {
     let mut c = 0;
     let mut median: i64 = 0;
     list.sort_by_key(|k| *k);
     for (k, v) in list.into_iter() {
         c += v;
         if c > num_games / 2 {
-            median = *k;
+            median = k;
             break;
         }
     }
@@ -137,12 +139,12 @@ pub fn calculate_winner(player_vec: &[i64]) -> Option<isize> {
     None
 }
 
-pub fn start_threads(player_count: usize, num_games: &usize) -> Vec<ThreadedGame> {
+pub fn start_threads(player_count: usize, num_games: usize) -> Vec<ThreadedGame> {
     let num_cores = thread::available_parallelism().unwrap().get();
     let num_games_per_thread = num_games / num_cores;
     let extra_games = num_games % num_cores;
 
-    let pb = ProgressBar::new(*num_games as u64);
+    let pb = ProgressBar::new(num_games as u64);
     let pb_mutex = Arc::new(Mutex::new(pb));
     let mut handles = vec![];
     for x in 0..num_cores {
@@ -169,4 +171,12 @@ pub fn start_threads(player_count: usize, num_games: &usize) -> Vec<ThreadedGame
         counts.push(handle.join().expect("Oops"));
     }
     counts
+}
+
+pub fn print_title(game_num: usize, player_count: usize) {
+    println!(
+        "Playing {} games with {} players",
+        game_num.to_formatted_string(&Locale::en),
+        player_count.to_formatted_string(&Locale::en)
+    );
 }
